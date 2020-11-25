@@ -13,3 +13,4 @@ To send messages, run messenger.java, enter the number, write message body in re
 Do not run messenger.java and dialer.java simultaneously as it will show "Port busy" error.<br>
 Close one before starting other.<br>
 If you still get error or program misbehaves, reconnect the linkit-one module.<br>
+Change the port number as per your system in "to_hardware.java".<bt>
