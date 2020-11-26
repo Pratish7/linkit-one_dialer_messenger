@@ -1,14 +1,20 @@
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import java.awt.GridLayout;
 import javax.swing.JPanel;
+import javax.swing.JRootPane;
 import javax.swing.JTextField;
 import java.awt.Color;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import javax.swing.Timer;
 import java.awt.event.ActionEvent;
 
 public class dialer {
@@ -30,6 +36,14 @@ public class dialer {
     private static JPanel panel2;
     private static JPanel panel3;
     private static JTextField num;
+    private static JFrame callwindow;
+    private static JButton endcall;
+    private static JLabel callstatus;
+    private static JPanel callpanel1;
+    private static JPanel callpanel2;
+    private static Thread get_call;
+    private static Thread status_thread;
+    private static Thread call_thread;
 
     public static void main(String args[]) {
 
@@ -253,11 +267,94 @@ public class dialer {
                 try {
                     String to_send = "C" + (num.getText());
                     to_hardware.send(to_send);
-                } catch (Exception e1) {}
+                } catch (Exception e1) {
+                }
+
+                get_call = new Thread(new Runnable() {
+                    public void run() {
+
+                        try {
+                            BufferedReader br=new BufferedReader(new InputStreamReader(to_hardware.sp.getInputStream()));
+                            String line;
+                            StringBuilder sb = new StringBuilder();
+                            while((line=br.readLine())!=null) sb.append(line);
+                            System.out.println(sb);
+                           
+                           
+                        } catch (Exception eio) {
+                        }
+                    }
+                });
+                get_call.start();
+
             }
         });
 
         window.pack();
         window.setVisible(true);
+    }
+
+    private static void call_open() {
+        callwindow = new JFrame();
+        callwindow.setUndecorated(true);
+        callwindow.getRootPane().setWindowDecorationStyle(JRootPane.NONE);
+        callwindow.setLayout(new BorderLayout());
+        callwindow.getContentPane().setBackground(Color.BLACK);
+        callwindow.setResizable(false);
+
+        callpanel1 = new JPanel();
+        callpanel1.setBackground(Color.BLACK);
+        callpanel1.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+        callpanel1.setLayout(new GridLayout(1, 1));
+        callwindow.getContentPane().add(callpanel1, BorderLayout.NORTH);
+
+        callstatus = new JLabel();
+        callstatus.setPreferredSize(new Dimension(300, 50));
+        callstatus.setHorizontalAlignment(JTextField.CENTER);
+        callstatus.setFont(new Font("Bahnschrift", Font.PLAIN, 25));
+        callstatus.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
+        callstatus.setBackground(Color.black);
+        callstatus.setForeground(Color.yellow);
+        callpanel1.add(callstatus);
+
+        callpanel2 = new JPanel();
+        callpanel2.setBackground(Color.BLACK);
+        callpanel2.setBorder(BorderFactory.createEmptyBorder(0, 100, 20, 100));
+        callpanel2.setLayout(new GridLayout(1, 1));
+        callwindow.getContentPane().add(callpanel2, BorderLayout.SOUTH);
+
+        endcall = new JButton();
+        endcall.setText("END CALL");
+        endcall.setPreferredSize(new Dimension(90, 60));
+        endcall.setBackground(null);
+        endcall.setFont(new Font("Bahnschrift", Font.PLAIN, 15));
+        endcall.setForeground(Color.YELLOW);
+        endcall.setFocusPainted(false);
+        endcall.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
+        callpanel2.add(endcall);
+        btn0.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+
+            }
+        });
+
+        callwindow.pack();
+        callwindow.setVisible(true);
+
+        status_thread = new Thread(new Runnable() {
+            public void run() {
+                try {
+                    BufferedReader br = new BufferedReader(new InputStreamReader(to_hardware.sp.getInputStream()));
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        System.out.println(line);
+                    }
+
+                } catch (IOException eio) {
+                }
+            }
+        });
+        status_thread.start();
+
     }
 }

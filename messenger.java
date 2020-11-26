@@ -83,7 +83,7 @@ public class messenger {
         sendbtn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    String to_send = "C" + number.getText() + "T" + txt_field.getText();
+                    String to_send = "S" + number.getText() + "T" + txt_field.getText();
                     to_hardware.send(to_send);
                 } catch (Exception e1) {}
             }
