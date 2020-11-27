@@ -279,6 +279,7 @@ public class dialer {
                             String line;
                             while ((line = br1.readLine()) != null) {
                                 call_open(line);
+                                window.setVisible(false);
                                 break;
 
                             }
@@ -295,6 +296,7 @@ public class dialer {
 
         window.pack();
         window.setVisible(true);
+        window.setLocationRelativeTo(null);
     }
 
     private static void call_open(String data_rec) {
@@ -321,9 +323,9 @@ public class dialer {
         callpanel1.add(callstatus);
 
         //if (data_rec==("called").toString()){
-        //  System.out.println(line.length());
+        
             
-         //   callstatus.setText(data_rec);
+         callstatus.setText("CALL RUNNING");
        // }
             
             
@@ -352,11 +354,13 @@ public class dialer {
 				//  } catch (InterruptedException e1) {
                 //     e1.printStackTrace();
                 //  }
+                window.setVisible(true);
                 callwindow.dispose();
                 try{
                 String i = "0";
                 to_hardware.sp.getOutputStream().write(i.getBytes());
                 to_hardware.sp.getOutputStream().flush();
+                to_hardware.sp.closePort();
                 }catch(IOException en){
                     en.printStackTrace();
                 }
@@ -365,6 +369,7 @@ public class dialer {
 
         callwindow.pack();
         callwindow.setVisible(true);
+        callwindow.setLocationRelativeTo(null);
 
         status_thread = new Thread(new Runnable() {
             public void run() {
