@@ -274,14 +274,17 @@ public class dialer {
                     public void run() {
 
                         try {
-                            BufferedReader br=new BufferedReader(new InputStreamReader(to_hardware.sp.getInputStream()));
+                            BufferedReader br1 = new BufferedReader(
+                                    new InputStreamReader(to_hardware.sp.getInputStream()));
                             String line;
-                            StringBuilder sb = new StringBuilder();
-                            while((line=br.readLine())!=null) sb.append(line);
-                            System.out.println(sb);
-                           
-                           
-                        } catch (Exception eio) {
+                            while ((line = br1.readLine()) != null) {
+                                call_open(line);
+                                break;
+
+                            }
+                            get_call.stop();
+                        } catch (IOException eio) {
+                            eio.printStackTrace();
                         }
                     }
                 });
@@ -294,7 +297,7 @@ public class dialer {
         window.setVisible(true);
     }
 
-    private static void call_open() {
+    private static void call_open(String data_rec) {
         callwindow = new JFrame();
         callwindow.setUndecorated(true);
         callwindow.getRootPane().setWindowDecorationStyle(JRootPane.NONE);
@@ -317,6 +320,13 @@ public class dialer {
         callstatus.setForeground(Color.yellow);
         callpanel1.add(callstatus);
 
+        //if (data_rec==("called").toString()){
+        //  System.out.println(line.length());
+            
+         //   callstatus.setText(data_rec);
+       // }
+            
+            
         callpanel2 = new JPanel();
         callpanel2.setBackground(Color.BLACK);
         callpanel2.setBorder(BorderFactory.createEmptyBorder(0, 100, 20, 100));
@@ -324,17 +334,32 @@ public class dialer {
         callwindow.getContentPane().add(callpanel2, BorderLayout.SOUTH);
 
         endcall = new JButton();
-        endcall.setText("END CALL");
         endcall.setPreferredSize(new Dimension(90, 60));
         endcall.setBackground(null);
+        endcall.setText("END CALL");
         endcall.setFont(new Font("Bahnschrift", Font.PLAIN, 15));
         endcall.setForeground(Color.YELLOW);
         endcall.setFocusPainted(false);
         endcall.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
         callpanel2.add(endcall);
-        btn0.addActionListener(new ActionListener() {
+        endcall.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-
+                callstatus.setText("ENDING CALL");
+                status_thread.stop();
+                
+                // try {
+				//  	Thread.sleep(3000);
+				//  } catch (InterruptedException e1) {
+                //     e1.printStackTrace();
+                //  }
+                callwindow.dispose();
+                try{
+                String i = "0";
+                to_hardware.sp.getOutputStream().write(i.getBytes());
+                to_hardware.sp.getOutputStream().flush();
+                }catch(IOException en){
+                    en.printStackTrace();
+                }
             }
         });
 
@@ -344,13 +369,15 @@ public class dialer {
         status_thread = new Thread(new Runnable() {
             public void run() {
                 try {
-                    BufferedReader br = new BufferedReader(new InputStreamReader(to_hardware.sp.getInputStream()));
+                    BufferedReader br2 = new BufferedReader(new InputStreamReader(to_hardware.sp.getInputStream()));
                     String line;
-                    while ((line = br.readLine()) != null) {
-                        System.out.println(line);
+                    while ((line = br2.readLine()) != null) {
+                    if (line == "called"){
+                        //endcall.setText("CALL RUNNING");
+                    }
                     }
 
-                } catch (IOException eio) {
+                } catch (Exception eio) {
                 }
             }
         });
