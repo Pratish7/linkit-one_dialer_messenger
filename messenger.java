@@ -3,6 +3,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import java.awt.GridLayout;
 import javax.swing.JPanel;
+import javax.swing.JRootPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.JLabel;
@@ -11,6 +12,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.awt.event.ActionEvent;
 
 public class messenger {
@@ -22,6 +25,12 @@ public class messenger {
     private static JTextPane txt_field;
     private static JTextField number;
     private static JLabel label1;
+    private static JFrame msgwindow;
+    private static JPanel msgpanel1;
+    private static JLabel msgstatus;
+    private static JPanel msgpanel2;
+    private static JButton okbtn;
+    private static Thread status_thread;
 
     public static void main(String args[]) {
 
@@ -85,10 +94,86 @@ public class messenger {
                 try {
                     String to_send = "S" + number.getText() + "T" + txt_field.getText();
                     to_hardware.send(to_send);
-                } catch (Exception e1) {}
+                    status();
+                    window.setVisible(false);
+                } catch (Exception e1) {
+                }
             }
         });
         window.pack();
         window.setVisible(true);
+        window.setLocationRelativeTo(null);
+    }
+
+    private static void status() {
+        msgwindow = new JFrame();
+        msgwindow.setUndecorated(true);
+        msgwindow.getRootPane().setWindowDecorationStyle(JRootPane.NONE);
+        msgwindow.setLayout(new BorderLayout());
+        msgwindow.getContentPane().setBackground(Color.BLACK);
+        msgwindow.setResizable(false);
+
+        msgpanel1 = new JPanel();
+        msgpanel1.setBackground(Color.BLACK);
+        msgpanel1.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+        msgpanel1.setLayout(new GridLayout(1, 1));
+        msgwindow.getContentPane().add(msgpanel1, BorderLayout.NORTH);
+
+        msgstatus = new JLabel();
+        msgstatus.setText("SENDING");
+        msgstatus.setPreferredSize(new Dimension(300, 50));
+        msgstatus.setHorizontalAlignment(JTextField.CENTER);
+        msgstatus.setFont(new Font("Bahnschrift", Font.PLAIN, 25));
+        msgstatus.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
+        msgstatus.setBackground(Color.black);
+        msgstatus.setForeground(Color.yellow);
+        msgpanel1.add(msgstatus);
+
+        msgpanel2 = new JPanel();
+        msgpanel2.setBackground(Color.BLACK);
+        msgpanel2.setBorder(BorderFactory.createEmptyBorder(0, 100, 20, 100));
+        msgpanel2.setLayout(new GridLayout(1, 1));
+        msgwindow.getContentPane().add(msgpanel2, BorderLayout.SOUTH);
+
+        okbtn = new JButton();
+        okbtn.setPreferredSize(new Dimension(90, 60));
+        okbtn.setBackground(null);
+        okbtn.setText("OK");
+        okbtn.setFont(new Font("Bahnschrift", Font.PLAIN, 15));
+        okbtn.setForeground(Color.YELLOW);
+        okbtn.setFocusPainted(false);
+        okbtn.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
+        msgpanel2.add(okbtn);
+        okbtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                status_thread.stop();
+                msgwindow.dispose();
+                to_hardware.sp.closePort();
+                number.setText(null);
+                txt_field.setText(null);
+                window.setVisible(true);
+
+            }
+
+        });
+
+        msgwindow.pack();
+        msgwindow.setVisible(true);
+        msgwindow.setLocationRelativeTo(null);
+
+        status_thread = new Thread(new Runnable() {
+            public void run() {
+                try {
+                    BufferedReader br2 = new BufferedReader(new InputStreamReader(to_hardware.sp.getInputStream()));
+                    String line;
+                    while ((line = br2.readLine()) != null) {
+                        msgstatus.setText(line);
+                    }
+
+                } catch (Exception eio) {
+                }
+            }
+        });
+        status_thread.start();
     }
 }
