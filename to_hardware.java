@@ -14,10 +14,8 @@ public class to_hardware {
             sp.getOutputStream().write(data.getBytes());
             sp.getOutputStream().flush();
             System.out.println("sent to board");
-            //return;
         } else{
-            System.out.println("Failed");
-            return;
+            System.out.println("Failed to send");
         }
 
     }

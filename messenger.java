@@ -158,7 +158,6 @@ public class messenger {
         status_thread = new Thread(new Runnable() {
             public void run() {
                 try {
-
                     BufferedReader status_reader = new BufferedReader(
                             new InputStreamReader(to_hardware.sp.getInputStream()));
                     while (status_reader.readLine() != null) {
@@ -167,6 +166,9 @@ public class messenger {
                             msgstatus.setText(line);
                             okbtn.setEnabled(true);
                             System.out.println(line);
+                            to_hardware.sp.closePort();
+                            status_thread.stop();
+                            break;
                         }
                     }
 
