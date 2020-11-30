@@ -6,6 +6,9 @@ import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
+
+import com.fazecast.jSerialComm.SerialPort;
+
 import javax.swing.JLabel;
 import java.awt.Color;
 import java.awt.BorderLayout;
@@ -13,7 +16,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.awt.event.ActionEvent;
 
@@ -107,10 +109,12 @@ public class messenger {
 
     private static void single_msg() {
         try {
+
+            window.setVisible(false);
             String to_send = "S" + number.getText() + "T" + txt_field.getText();
             to_hardware.send(to_send);
             status();
-            window.setVisible(false);
+
         } catch (Exception eio) {
             eio.printStackTrace();
         }
@@ -120,6 +124,8 @@ public class messenger {
         String[] numbers = (number.getText()).split(";");
         group_thread = new Thread(new Runnable() {
             public void run() {
+                status();
+
                 for (int i = 0; i < numbers.length; i++) {
 
                     try {
@@ -128,13 +134,13 @@ public class messenger {
                         to_hardware.send(to_send);
                         System.out.println("sending to" + numbers[i]);
                         BufferedReader br2 = new BufferedReader(new InputStreamReader(to_hardware.sp.getInputStream()));
-                        while ((br2.readLine())!=null) {
-                                if (br2.readLine().equals("ready")){
-                                    System.out.println("ready");
-                                    to_hardware.sp.closePort();
-                                    Thread.sleep(3000);
-                                    break;
-                                }                         
+                        while ((br2.readLine()) != null) {
+                            if (br2.readLine().equals("ready")) {
+                                System.out.println("ready");
+                                to_hardware.sp.closePort();
+                                Thread.sleep(3000);
+                                break;
+                            }
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -148,6 +154,29 @@ public class messenger {
     }
 
     private static void status() {
+
+        status_thread = new Thread(new Runnable() {
+            public void run() {
+                try {
+
+                    BufferedReader status_reader = new BufferedReader(
+                            new InputStreamReader(to_hardware.sp.getInputStream()));
+                    while (status_reader.readLine() != null) {
+                       String line = status_reader.readLine();
+                        if (line.equals("MESSAGE SENT") || line.equals("FAILED")) {
+                            msgstatus.setText(line);
+                            okbtn.setEnabled(true);
+                            System.out.println(line);
+                        }
+                    }
+
+                } catch (Exception eio) {
+                    eio.printStackTrace();
+                }
+            }
+        });
+        status_thread.start();
+
         msgwindow = new JFrame();
         msgwindow.setUndecorated(true);
         msgwindow.getRootPane().setWindowDecorationStyle(JRootPane.NONE);
@@ -185,6 +214,7 @@ public class messenger {
         okbtn.setForeground(Color.YELLOW);
         okbtn.setFocusPainted(false);
         okbtn.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
+        okbtn.setEnabled(false);
         msgpanel2.add(okbtn);
         okbtn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -203,19 +233,6 @@ public class messenger {
         msgwindow.setVisible(true);
         msgwindow.setLocationRelativeTo(null);
 
-        status_thread = new Thread(new Runnable() {
-            public void run() {
-                try {
-                    BufferedReader br2 = new BufferedReader(new InputStreamReader(to_hardware.sp.getInputStream()));
-                    String line;
-                    while ((line = br2.readLine()) != null) {
-                        msgstatus.setText(line);
-                    }
-
-                } catch (Exception eio) {
-                }
-            }
-        });
-        status_thread.start();
+        
     }
 }
