@@ -109,7 +109,6 @@ public class messenger {
 
     private static void single_msg() {
         try {
-
             window.setVisible(false);
             String to_send = "S" + number.getText() + "T" + txt_field.getText();
             to_hardware.send(to_send);
@@ -162,14 +161,16 @@ public class messenger {
                             new InputStreamReader(to_hardware.sp.getInputStream()));
                     while (status_reader.readLine() != null) {
                        String line = status_reader.readLine();
-                        if (line.equals("MESSAGE SENT") || line.equals("FAILED")) {
-                            msgstatus.setText(line);
-                            okbtn.setEnabled(true);
-                            System.out.println(line);
-                            to_hardware.sp.closePort();
-                            status_thread.stop();
-                            break;
-                        }
+                       System.out.println(line); 
+                    //    if (line.equals("MESSAGE SENT") || line.equals("FAILED")) {
+                    //         msgstatus.setText(line);
+                    //         okbtn.setEnabled(true);
+                    //         System.out.println(line);
+                    //         status_reader.close();
+                    //         to_hardware.sp.closePort();
+                    //         status_thread.stop();
+                    //         break;
+                    //     }
                     }
 
                 } catch (Exception eio) {
@@ -216,16 +217,16 @@ public class messenger {
         okbtn.setForeground(Color.YELLOW);
         okbtn.setFocusPainted(false);
         okbtn.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
-        okbtn.setEnabled(false);
+        okbtn.setEnabled(true);
         msgpanel2.add(okbtn);
         okbtn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                status_thread.stop();
-                msgwindow.dispose();
                 to_hardware.sp.closePort();
+                msgwindow.dispose();
                 number.setText(null);
                 txt_field.setText(null);
                 window.setVisible(true);
+
 
             }
 
