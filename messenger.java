@@ -13,6 +13,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.awt.event.ActionEvent;
 
@@ -31,6 +32,7 @@ public class messenger {
     private static JPanel msgpanel2;
     private static JButton okbtn;
     private static Thread status_thread;
+    private static Thread group_thread;
 
     public static void main(String args[]) {
 
@@ -91,18 +93,58 @@ public class messenger {
         panel3.add(sendbtn);
         sendbtn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                try {
-                    String to_send = "S" + number.getText() + "T" + txt_field.getText();
-                    to_hardware.send(to_send);
-                    status();
-                    window.setVisible(false);
-                } catch (Exception e1) {
+                if (number.getText().contains(";")) {
+                    group_msg();
+                } else {
+                    single_msg();
                 }
             }
         });
         window.pack();
         window.setVisible(true);
         window.setLocationRelativeTo(null);
+    }
+
+    private static void single_msg() {
+        try {
+            String to_send = "S" + number.getText() + "T" + txt_field.getText();
+            to_hardware.send(to_send);
+            status();
+            window.setVisible(false);
+        } catch (Exception eio) {
+            eio.printStackTrace();
+        }
+    }
+
+    private static void group_msg() {
+        String[] numbers = (number.getText()).split(";");
+        group_thread = new Thread(new Runnable() {
+            public void run() {
+                for (int i = 0; i < numbers.length; i++) {
+
+                    try {
+                        System.out.println(i);
+                        String to_send = "S" + numbers[i] + "T" + txt_field.getText();
+                        to_hardware.send(to_send);
+                        System.out.println("sending to" + numbers[i]);
+                        BufferedReader br2 = new BufferedReader(new InputStreamReader(to_hardware.sp.getInputStream()));
+                        while ((br2.readLine())!=null) {
+                                if (br2.readLine().equals("ready")){
+                                    System.out.println("ready");
+                                    to_hardware.sp.closePort();
+                                    Thread.sleep(3000);
+                                    break;
+                                }                         
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+        });
+        group_thread.start();
+
     }
 
     private static void status() {
