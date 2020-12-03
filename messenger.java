@@ -6,9 +6,6 @@ import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
-
-import com.fazecast.jSerialComm.SerialPort;
-
 import javax.swing.JLabel;
 import java.awt.Color;
 import java.awt.BorderLayout;
@@ -133,7 +130,7 @@ public class messenger {
                         to_hardware.send(to_send);
                         System.out.println("sending to" + numbers[i]);
                         BufferedReader br2 = new BufferedReader(new InputStreamReader(to_hardware.sp.getInputStream()));
-                        while ((br2.readLine()) != null) {
+                        while (true) {
                             if (br2.readLine().equals("ready")) {
                                 System.out.println("ready");
                                 to_hardware.sp.closePort();
@@ -159,18 +156,17 @@ public class messenger {
                 try {
                     BufferedReader status_reader = new BufferedReader(
                             new InputStreamReader(to_hardware.sp.getInputStream()));
-                    while (status_reader.readLine() != null) {
-                       String line = status_reader.readLine();
-                       System.out.println(line); 
-                    //    if (line.equals("MESSAGE SENT") || line.equals("FAILED")) {
-                    //         msgstatus.setText(line);
-                    //         okbtn.setEnabled(true);
-                    //         System.out.println(line);
-                    //         status_reader.close();
-                    //         to_hardware.sp.closePort();
-                    //         status_thread.stop();
-                    //         break;
-                    //     }
+                    while (true) {
+                        String line = status_reader.readLine();
+                        System.out.println(line);
+                        if (line.equals("MESSAGE SENT") || line.equals("FAILED")) {
+                            msgstatus.setText(line);
+                            okbtn.setEnabled(true);
+                            status_reader.close();
+                            status_thread.stop();
+                            to_hardware.sp.closePort();
+                            break;
+                        }
                     }
 
                 } catch (Exception eio) {
@@ -227,7 +223,6 @@ public class messenger {
                 txt_field.setText(null);
                 window.setVisible(true);
 
-
             }
 
         });
@@ -236,6 +231,5 @@ public class messenger {
         msgwindow.setVisible(true);
         msgwindow.setLocationRelativeTo(null);
 
-        
     }
 }
